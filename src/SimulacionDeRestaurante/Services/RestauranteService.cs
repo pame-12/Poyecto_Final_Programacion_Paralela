@@ -42,4 +42,19 @@ private void SimularEntrega(Pedido pedido, ref int entregasATiempo, ref int entr
     pedido.TiempoEntrega = time;
 
    
+    if (time > 30)
+    {
+        pedido.EsGratis = true;
+        lock (lockObj)
+        {
+            entregasGratis++;
+        }
+    }
+    else
+    {
+        lock (lockObj)
+        {
+            entregasATiempo++;
+        }
+    }
 }
