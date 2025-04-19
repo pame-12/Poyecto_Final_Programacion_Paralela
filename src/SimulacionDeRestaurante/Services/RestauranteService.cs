@@ -179,6 +179,29 @@ namespace SimulacionDeRestauranta.Services
         }      
 
 
+
+
+        // Crea una copia de los pedidos 
+        private List<Pedido> ClonarPedidos(List<Pedido> originales)
+        {
+            //Tranforma cada elemento en uno nuevo con los mismos valores
+            return originales.Select(p => new Pedido
+            {
+                Id = p.Id,
+                Platillo = p.Platillo,
+                HoraPedido = p.HoraPedido
+            //Convierte el resultado en una lista
+            }).ToList();
+        }
+
+
+
+
+
+        //Metodo de procesamiento de los pedidos
+
+
+        
         
 
         // Delivery -Raymond Moreno
