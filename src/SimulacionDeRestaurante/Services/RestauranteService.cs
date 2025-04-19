@@ -156,6 +156,31 @@ namespace SimulacionDeRestauranta.Services
             return resultado; 
         }
 
+
+        
+        // Genera una lista de pedidos
+        private List<Pedido> GenerarPedidos(int cantidad)
+        {
+            //Crea la lista de pedidos
+            var pedidos = new List<Pedido>();
+
+            for (int i = 1; i <= cantidad; i++)
+            {
+                //Se agregan pedidos a la lista
+                pedidos.Add(new Pedido
+                {
+                    Id = i,
+                    //Se selecciona un plato aleaatorio
+                    Platillo = menu[rnd.Next(menu.Length)],
+                    HoraPedido = DateTime.Now
+                });
+            }
+            return pedidos;
+        }      
+
+
+        
+
         // Delivery -Raymond Moreno
         
         
