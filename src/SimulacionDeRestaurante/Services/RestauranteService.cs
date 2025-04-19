@@ -1,268 +1,199 @@
-using System.Collections.Concurrent;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using SimulacionDeRestauranta.Models;
+using System.Collections.Concurrent;
 
-namespace SimulacionDeRestauranta.Services
+using SimulacionDeRestaurante.Models;
+public class ProcesadorPedidos
 {
-    public class RestauranteService
+    private readonly Random rnd = new Random();
+    private readonly string[] menu = { "Yaroa", "Pizza", "Hamburguesa", "Tacos", "Burrito" };
+
+    public async IAsyncEnumerable<Resultado> Procesamiento(int numeroPedidos)
     {
-        //Lista de de los platillos disponibles
-        private static string[] menu = { "Yaroa", "Pizza", "Hamburguesa", "Tacos", "Burrito" };
-        //Variable para generar numero aleatorios
-        private static Random rnd = new Random();
-        public ResultadoSimulacion EjecutarSimulacion(int cantidadPedidos)
+        var pedidosOriginales = GenerarPedidos(numeroPedidos);
+        List<int> chefs = new() { 2, 4, 6, 8 };
+        Stopwatch sw = new Stopwatch();
+        double tiempoSecuencial;
+
+        // Secuencial
+        sw.Start();
+        var resultadoSecuencial = await Task.Run(() => Secuencial(ClonarPedidos(pedidosOriginales)));
+        sw.Stop();
+        tiempoSecuencial = sw.ElapsedMilliseconds;
+
+        foreach (var numChef in chefs)
         {
-            //Objto resultado donde se guardaran todas las metricas
-            var resultado = new ResultadoSimulacion();
-            //Variable para manejar datos compartidos
-            object lockObj = new object();
+            sw.Restart();
+            var resultadoParalelo = await Task.Run(() => Paralelo(ClonarPedidos(pedidosOriginales), numChef));
+            sw.Stop();
 
-            // Generar los pedidos iniciales
-            var pedidosOriginales = GenerarPedidos(cantidadPedidos);
+            double tiempoParalelo = sw.ElapsedMilliseconds;
+            double speedup = tiempoSecuencial / tiempoParalelo;
+            double eficiencia = speedup / numChef;
+            string recomendacion = "";
 
-
-            // Guardar la cantidad total de pedidos
-            resultado.TotalPedidos = cantidadPedidos;
-
-            // Contar platos por pedidos
-            //Se crea un diccionario
-            var estadisticasPlatillos = new Dictionary<string, int>();
-            //Recorre la lista de pedidos originales
-            foreach (var pedido in pedidosOriginales)
+            if (eficiencia > 0.7)
             {
-                //Verifica si el plato del pedido ya esta en el diccionario
-                if (estadisticasPlatillos.ContainsKey(pedido.Platillo))
-                    //Si existe incrementaa el contador
-                    estadisticasPlatillos[pedido.Platillo]++;
-                else
-                    //Si no se agrega al diccionario con un volor de 1
-                    estadisticasPlatillos[pedido.Platillo] = 1;
+                recomendacion = $"Se recomienda utilizar {numChef} chefs.";
             }
-            //Guarda los resultados del conteo de cada platillo
-            resultado.EstadisticasPlatillos = estadisticasPlatillos;
-
-
-            // --------- SIMULACION SECUENCIAL ---------
-            //Clonar la lista original de pedidos
-            var pedidosSecuencial = ClonarPedidos(pedidosOriginales);
-            //Inicializar Variables en 0
-            int entregasATiempoSec = 0, entregasGratisSec = 0;
-            //Crea e inicializa el cronometro
-            var swSecuencial = Stopwatch.StartNew();
-
-            // Procesa y entrega los pedidos uno por uno
-            foreach (var pedido in pedidosSecuencial)
+            else if (eficiencia > 0.5 && eficiencia <= 0.7)
             {
-                //llama al metodo que simula la preparacion del pedido
-                ProcesarPedido(pedido);
-                //Llama al metodo que simula la entrega
-                SimularEntrega(pedido, ref entregasATiempoSec, ref entregasGratisSec, lockObj);
-            }
-
-            //Detiene el cronometro
-            swSecuencial.Stop();
-            //Tiempo total en segundo
-            resultado.TiempoSecuencial = swSecuencial.Elapsed.TotalSeconds;
-            //Entregas a tiempo
-            resultado.EntregasATiempoSecuencial = entregasATiempoSec;
-            //Entregas gratis
-            resultado.EntregasGratisSecuencial = entregasGratisSec;
-
-            // --------- SIMULACION PARALELA ---------
-            //Lista para simular distitos numeros de procesadores
-            int[] nivelesParalelismo = { 2, 4, 6, 8 }; 
-
-            foreach (int procesadores in nivelesParalelismo)
-            {
-                //Clonar pedidos
-                var pedidosParalelo = ClonarPedidos(pedidosOriginales); 
-                //Inicializar variables en 0
-                int entregasATiempo = 0, entregasGratis = 0;
-                //Crea e inicializa el cronometro
-                var swParalelo = Stopwatch.StartNew(); 
-
-                // Cola segura para compartir pedidos preparados entre hilos
-                var pedidosListos = new ConcurrentQueue<Pedido>();
-                //Define el maximo de hilos a usar
-                var opciones = new ParallelOptions { MaxDegreeOfParallelism = procesadores };
-
-                // Variable para manejar datos comppertidos
-                object lockPreparados = new object();
-                //Variable para contar cuantos pedidos fuero preparados
-                int pedidosPreparados = 0;
-
-                // --------- Preparacion en paralelo ---------
-                Parallel.ForEach(pedidosParalelo, opciones, pedido =>
-                {
-                    //Llama al metodo que simula el procesamiento de pedido en paralelo
-                    ProcesarPedido(pedido); 
-                    //Se agregan los pedidos listos a la cola segura
-                    pedidosListos.Enqueue(pedido); 
-
-                    // se incrementan los pedidos preparado se usa lock para mas seguridad
-                    lock (lockPreparados)
-                    {
-                        pedidosPreparados++;
-                    }
-                });
-
-                // --------- Entrega en paralelo ---------
-                Parallel.For(0, procesadores, opciones, i =>
-                {
-                    while (true)
-                    {
-                        // Se intenta sacar un pedido de la cola y lo guarda en pedido
-                        if (pedidosListos.TryDequeue(out var pedido))
-                        {
-                            //Llama al metodo que simula la entrega paralela
-                            SimularEntrega(pedido, ref entregasATiempo, ref entregasGratis, lockObj);
-                        }
-                        else
-                        {
-                            // Verifica si todos los pedidos han sido preparados y la cola esta vacia
-                            lock (lockPreparados)
-                            {
-                                if (pedidosPreparados == pedidosParalelo.Count && pedidosListos.IsEmpty)
-                                    // Terminar bucle si ya no hay mas pedidos que entregar
-                                    break; 
-                            }
-                            //Espera un poco
-                            Thread.Sleep(10); 
-                        }
-                    }
-                });
-
-                swParalelo.Stop();
-
-                // Calculo de las metricas de rendimiento
-                double tiempoParalelo = swParalelo.Elapsed.TotalSeconds;
-                double speedup = resultado.TiempoSecuencial / tiempoParalelo; 
-                double eficiencia = speedup / procesadores;
-
-                // Se guardan los resultados de la simulacion
-                resultado.ResultadosParalelos.Add(new ResultadoParalelo
-                {
-                    Procesadores = procesadores,
-                    Tiempo = tiempoParalelo,
-                    Speedup = speedup,
-                    Eficiencia = eficiencia,
-                    EntregasATiempo = entregasATiempo,
-                    EntregasGratis = entregasGratis
-                });
-            }
-            //Devuelve todos los resultados
-            return resultado; 
-        }
-
-
-        
-        // Genera una lista de pedidos
-        private List<Pedido> GenerarPedidos(int cantidad)
-        {
-            //Crea la lista de pedidos
-            var pedidos = new List<Pedido>();
-
-            for (int i = 1; i <= cantidad; i++)
-            {
-                //Se agregan pedidos a la lista
-                pedidos.Add(new Pedido
-                {
-                    Id = i,
-                    //Se selecciona un plato aleaatorio
-                    Platillo = menu[rnd.Next(menu.Length)],
-                    HoraPedido = DateTime.Now
-                });
-            }
-            return pedidos;
-        }      
-
-
-
-
-        // Crea una copia de los pedidos 
-        private List<Pedido> ClonarPedidos(List<Pedido> originales)
-        {
-            //Tranforma cada elemento en uno nuevo con los mismos valores
-            return originales.Select(p => new Pedido
-            {
-                Id = p.Id,
-                Platillo = p.Platillo,
-                HoraPedido = p.HoraPedido
-            //Convierte el resultado en una lista
-            }).ToList();
-        }
-
-
-
-
-
-        //Metodo de procesamiento de los pedidos
-
-
-        
-        
-
-        // Delivery -Raymond Moreno
-        
-        
-        private void SimularEntrega(Pedido pedido, ref int entregasATiempo, ref int entregasGratis, object lockObj)
-        {
-            int probabilidad = rnd.Next(1, 101);  
-            int time = 0;
-        
-            if (probabilidad <= 20)
-            {
-                // 20% 5 a 10 min
-                time = rnd.Next(5, 11); 
-                Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
-            }
-            else if (probabilidad <= 60)
-            {
-                // 40% 10 a 15 min
-                time = rnd.Next(10, 16); 
-                Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
-            }
-            else if (probabilidad <= 85)
-            {
-                // 25% 15 a 20 min
-                time = rnd.Next(15, 21); 
-                Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
-            }
-            else if (probabilidad <= 95)
-            {
-                // 10% 20 a 25 min
-                time = rnd.Next(20, 26);
-                Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
+                recomendacion = $"Se recomienda utilizar {numChef} chefs, pero se puede mejorar.";
             }
             else
             {
-                // 5% más de 30 min
-                time = rnd.Next(31, 41); 
-                Console.WriteLine($"Pedido {pedido.Id}: Supero los 30 minutos (Salio Gratis) ");
-                
+                recomendacion = $"No se recomienda utilizar {numChef} chefs, ya que la eficiencia es baja.";
             }
-        
-            pedido.TiempoEntrega = time;
-        
-           
-            if (time > 30)
+
+            yield return new Resultado
             {
-                pedido.EsGratis = true;
-                lock (lockObj)
-                {
-                    entregasGratis++;
-                }
-            }
-            else
-            {
-                lock (lockObj)
-                {
-                    entregasATiempo++;
-                }
-            }
+                NumeroChefs = numChef,
+                TiempoSecuencial = tiempoSecuencial,
+                TiempoParalelo = tiempoParalelo,
+                Speedup = speedup,
+                Eficiencia = eficiencia,
+                Recomendacion = recomendacion,
+                EntregasATiempo = resultadoParalelo.EntregasATiempo,
+                EntregasGratis = resultadoParalelo.EntregasGratis
+            };
         }
     }
-}  
-        
+
+    private List<Pedido> GenerarPedidos(int cantidad)
+    {
+        var pedidos = new List<Pedido>();
+        for (int i = 1; i <= cantidad; i++)
+        {
+            pedidos.Add(new Pedido
+            {
+                Id = i,
+                Platillo = menu[rnd.Next(menu.Length)],
+                HoraPedido = DateTime.Now
+            });
+        }
+        return pedidos;
+    }
+
+    private List<Pedido> ClonarPedidos(List<Pedido> originales)
+    {
+        return originales.Select(p => new Pedido
+        {
+            Id = p.Id,
+            Platillo = p.Platillo,
+            HoraPedido = p.HoraPedido
+        }).ToList();
+    }
+
+    private Resultado Secuencial(List<Pedido> pedidos)
+    {
+        int entregasATiempo = 0;
+        int entregasGratis = 0;
+        object lockObj = new();
+
+        foreach (var pedido in pedidos)
+        {
+            SimularEntrega(pedido, ref entregasATiempo, ref entregasGratis, lockObj);
+        }
+
+        return new Resultado
+        {
+            EntregasATiempo = entregasATiempo,
+            EntregasGratis = entregasGratis
+        };
+    }
+
+    private Resultado Paralelo(List<Pedido> pedidos, int numChefs)
+    {
+        int entregasATiempo = 0;
+        int entregasGratis = 0;
+        object lockObj = new();
+        var pedidosListos = new ConcurrentQueue<Pedido>();
+        int pedidosPreparados = 0;
+        object lockPreparados = new object();
+        var opciones = new ParallelOptions { MaxDegreeOfParallelism = numChefs };
+
+        // Preparación en paralelo
+        Parallel.ForEach(pedidos, opciones, pedido =>
+        {
+            Thread.Sleep(rnd.Next(50, 201)); 
+            pedidosListos.Enqueue(pedido);
+            lock (lockPreparados)
+            {
+                pedidosPreparados++;
+            }
+        });
+
+        Parallel.For(0, numChefs, opciones, _ =>
+        {
+            while (true)
+            {
+                if (pedidosListos.TryDequeue(out var pedido))
+                {
+                    SimularEntrega(pedido, ref entregasATiempo, ref entregasGratis, lockObj);
+                }
+                else
+                {
+                    lock (lockPreparados)
+                    {
+                        if (pedidosPreparados == pedidos.Count && pedidosListos.IsEmpty)
+                            break;
+                    }
+                    Thread.Sleep(10);
+                }
+            }
+        });
+
+        return new Resultado
+        {
+            EntregasATiempo = entregasATiempo,
+            EntregasGratis = entregasGratis
+        };
+    }
+
+    private void SimularEntrega(Pedido pedido, ref int entregasATiempo, ref int entregasGratis, object lockObj)
+    {
+        int probabilidad = rnd.Next(1, 101);
+        int time;
+
+        if (probabilidad <= 20)
+        {
+            time = rnd.Next(5, 11);
+            Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
+        }
+        else if (probabilidad <= 60)
+        {
+            time = rnd.Next(10, 16);
+            Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
+        }
+        else if (probabilidad <= 85)
+        {
+            time = rnd.Next(15, 21);
+            Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
+        }
+        else if (probabilidad <= 95)
+        {
+            time = rnd.Next(20, 26);
+            Console.WriteLine($"Pedido {pedido.Id}: Entregado en {time} minutos");
+        }
+        else
+        {
+            time = rnd.Next(31, 41);
+            Console.WriteLine($"Pedido {pedido.Id}: Superó los 30 minutos (Salió gratis)");
+        }
+
+        pedido.TiempoEntrega = time;
+        pedido.EsGratis = time > 30;
+
+        lock (lockObj)
+        {
+            if (pedido.EsGratis)
+                entregasGratis++;
+            else
+                entregasATiempo++;
+        }
+    }
+}
