@@ -202,31 +202,34 @@ using SimulacionDeRestauranta.Models;
  
          //Metodo de procesamiento de los pedidos - Cristopher
  
-            private void ProcesarPedido(Pedido pedido)
+        private async Task ProcesarPedido(Pedido pedido)
+        {
+            Console.WriteLine($"Pedido {pedido.Id}: {pedido.Platillo} - En preparacion...");
+            int tiempoPreparacion = rnd.Next(1, 6); // 1 - 5 minutos
+            if (pedido.Platillo == "Yaroa")
             {
-                int tiempoPreparacion = rnd.Next(1, 6); // 1 a 5 minutos
-                if (pedido.Platillo == "Yaroa")
-                {
-                    tiempoPreparacion += 2; 
-                }
-                else if (pedido.Platillo == "Pizza")
-                {
-                    tiempoPreparacion += 3; 
-                }
-                else if (pedido.Platillo == "Hamburguesa")
-                {
-                    tiempoPreparacion += 1; 
-                }
-                else if (pedido.Platillo == "Tacos")
-                {
-                    tiempoPreparacion += 1; 
-                }
-                else if (pedido.Platillo == "Burrito")
-                {
-                    tiempoPreparacion += 4; 
-                }
-                Console.WriteLine($"Pedido {pedido.Id} preparado en {tiempoPreparacion} minutos.");
+                tiempoPreparacion += 2;
             }
+            else if (pedido.Platillo == "Pizza")
+            {
+                tiempoPreparacion += 3;
+            }
+            else if (pedido.Platillo == "Hamburguesa")
+            {
+                tiempoPreparacion += 1;
+            }
+            else if (pedido.Platillo == "Tacos")
+            {
+                tiempoPreparacion += 1;
+            }
+            else if (pedido.Platillo == "Burrito")
+            {
+                tiempoPreparacion += 4;
+            }
+
+            await Task.Delay(tiempoPreparacion); 
+            Console.WriteLine($"Pedido {pedido.Id}: {pedido.Platillo} - esta listo");
+        }
          
          
  
