@@ -1,0 +1,82 @@
+@model SimulacionDeRestauranta.Models.ResultadoSimulacion
+
+@{
+    Layout = "_Layout";
+}
+
+
+<div class="container py-5">
+    <div class="card p-4 shadow-sm">
+        <h2 class="text-center text-primary mb-4">
+            📊 Resultados de la Simulación
+        </h2>
+
+        <h4 class="text-primary"><span style="font-size: 1.2rem;">🍽</span> Estadísticas de Platillos</h4>
+        <p><strong>Total de pedidos:</strong> @Model.TotalPedidos</p>
+        <ul>
+
+            @foreach (var platillo in Model.EstadisticasPlatillos)
+            {
+                <li>
+                    <span>
+                        @(platillo.Key == "Pizza" ? "🍕" :
+                                            platillo.Key == "Hamburguesa" ? "🍔" :
+                                            platillo.Key == "Yaroa" ? "🍟" :
+                                            platillo.Key == "Burrito" ? "🌯" :
+                                            platillo.Key == "Tacos" ? "🌮" : "🍽")
+                </span>
+                <strong>@platillo.Key:</strong> @platillo.Value pedidos
+            </li>
+                        }
+        </ul>
+
+        <h4 class="mt-4 text-primary text-center">Simulación Secuencial</h4>
+        <ul class="list-unstyled">
+
+            <li>⏱ <strong>Tiempo:</strong> @Model.TiempoSecuencial s</li>
+            <li>📦 <strong>Entregas a tiempo:</strong> <span
+                    class="text-success">@Model.EntregasATiempoSecuencial</span></li>
+            <li>🎁 <strong>Entregas gratis:</strong> <span class="text-danger">@Model.EntregasGratisSecuencial</span>
+            </li>
+
+
+        </ul>
+
+        <h4 class="mt-4 text-primary"><span style="font-size: 1.2rem;">🔄</span> Simulaciones Paralelas</h4>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped mt-2">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th>Procesadores</th>
+                        <th>Tiempo (s)</th>
+                        <th>Speedup</th>
+                        <th>Eficiencia</th>
+                        <th>Entregas a Tiempo</th>
+                        <th>Entregas Gratis</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+
+                    @foreach (var resultadosParalelos in Model.ResultadosParalelos)
+                    {
+                        <tr>
+                            <td>@resultadosParalelos.Procesadores</td>
+                            <td>@resultadosParalelos.Tiempo</td>
+                            <td>@resultadosParalelos.Speedup</td>
+                            <td>@resultadosParalelos.Eficiencia</td>
+                            <td>@resultadosParalelos.EntregasATiempo</td>
+                            <td>@resultadosParalelos.EntregasGratis</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-4">
+            <a asp-action="Index" class="text-decoration-none fw-semibold">
+                🔙 Volver al inicio
+            </a>
+        </div>
+    </div>
+</div>
