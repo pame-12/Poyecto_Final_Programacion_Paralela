@@ -1,0 +1,53 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\elier\\OneDrive\\Desktop\\proyecto final paralelaa\\proyecto final paralela\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{FE17C3D2-309D-4110-81ED-0B0D5ABCD2A7}|Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\SimulacionDeRestaurante.csproj|c:\\users\\elier\\onedrive\\desktop\\proyecto final paralelaa\\proyecto final paralela\\poyecto_final_programacion_paralela\\src\\simulacionderestaurante\\services\\restauranteservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FE17C3D2-309D-4110-81ED-0B0D5ABCD2A7}|Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\SimulacionDeRestaurante.csproj|solutionrelative:poyecto_final_programacion_paralela\\src\\simulacionderestaurante\\services\\restauranteservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FE17C3D2-309D-4110-81ED-0B0D5ABCD2A7}|Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\SimulacionDeRestaurante.csproj|c:\\users\\elier\\onedrive\\desktop\\proyecto final paralelaa\\proyecto final paralela\\poyecto_final_programacion_paralela\\src\\simulacionderestaurante\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FE17C3D2-309D-4110-81ED-0B0D5ABCD2A7}|Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\SimulacionDeRestaurante.csproj|solutionrelative:poyecto_final_programacion_paralela\\src\\simulacionderestaurante\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RestauranteService.cs",
+              "DocumentMoniker": "C:\\Users\\elier\\OneDrive\\Desktop\\proyecto final paralelaa\\proyecto final paralela\\Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Services\\RestauranteService.cs",
+              "RelativeDocumentMoniker": "Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Services\\RestauranteService.cs",
+              "ToolTip": "C:\\Users\\elier\\OneDrive\\Desktop\\proyecto final paralelaa\\proyecto final paralela\\Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Services\\RestauranteService.cs",
+              "RelativeToolTip": "Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Services\\RestauranteService.cs",
+              "ViewState": "AgIAALsAAAAAAAAAAIAwwO0AAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T22:35:08.541Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\elier\\OneDrive\\Desktop\\proyecto final paralelaa\\proyecto final paralela\\Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Program.cs",
+              "RelativeDocumentMoniker": "Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Program.cs",
+              "ToolTip": "C:\\Users\\elier\\OneDrive\\Desktop\\proyecto final paralelaa\\proyecto final paralela\\Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Program.cs",
+              "RelativeToolTip": "Poyecto_Final_Programacion_Paralela\\src\\SimulacionDeRestaurante\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T21:32:17.077Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
