@@ -1,8 +1,9 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using SimulacionDeRestauranta.Models;
 using SimulacionDeRestauranta.Services;
 using SimulacionDeRestaurante.Models;
+using System.Diagnostics;
+
 
 namespace SimulacionDeRestaurante.Controllers;
 
@@ -14,10 +15,10 @@ public class HomeController : Controller
     {
         _logger = logger;
     }
-
+    private static string[] menu = { "Yaroa", "Pizza", "Hamburguesa", "Tacos", "Burrito" };
     public IActionResult Index()
     {
-
+        ViewBag.Menu = menu;
         return View();
     }
 
@@ -28,25 +29,25 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public IActionResult Resultado(SimulacionData data)
+    public IActionResult Resultado(SimulacionData data, List<string> menuSeleccionado)
     {
-
         if (ModelState.IsValid)
         {
             var cantidadPedidos = data.CantidadPeticiones;
             _logger.LogInformation($"Cantidad de pedidos: {cantidadPedidos}");
-            var resultadoSimulacion = new RestauranteService().EjecutarSimulacion(cantidadPedidos);
+            _logger.LogInformation($"Menús seleccionados: {string.Join(", ", menuSeleccionado)}");
+
+            var resultadoSimulacion = new RestauranteService().EjecutarSimulacion(cantidadPedidos, menuSeleccionado);
             return View("Resultado", resultadoSimulacion);
         }
         else
         {
-            // Manejar el caso en que el modelo no es válido
-            // Puedes redirigir a una vista de error o mostrar un mensaje de error
             ModelState.AddModelError("", "Por favor, ingrese un número válido de pedidos.");
+            ViewBag.Menu = new string[] { "Yaroa", "Pizza", "Hamburguesa", "Tacos", "Burrito" };
             return View("Index", data);
         }
-
     }
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
