@@ -1,0 +1,134 @@
+@model SimulacionDeRestauranta.Models.ResultadoSimulacion
+
+@{
+    Layout = "_Layout";
+}
+
+<div class="container py-5">
+    <div class="card p-4 shadow-sm">
+        <h2 class="text-center text-primary mb-4">
+            📊 Resultados de la Simulación
+        </h2>
+
+        <h4 class="text-primary"><span style="font-size: 1.2rem;">🍽</span> Estadísticas de Platillos</h4>
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <div class="card shadow-sm p-3">
+                    <h6 class="text-center">Estadísticas de Platillos</h6>
+                    <canvas id="graficoPlatillosCircular"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mt-4 text-primary text-center">Total de Pedidos</h4>
+        <p class="text-center text-success"><strong>@Model.TotalPedidos</strong></p>
+
+        <h4 class="mt-4 text-primary text-center">Simulación Secuencial</h4>
+        <ul class="list-unstyled">
+            <li>⏱ <strong>Tiempo:</strong> @Model.TiempoSecuencial s</li>
+            <li>📦 <strong>Entregas a tiempo:</strong> <span class="text-success">@Model.EntregasATiempoSecuencial</span></li>
+            <li>🎁 <strong>Entregas gratis:</strong> <span class="text-danger">@Model.EntregasGratisSecuencial</span></li>
+        </ul>
+
+        <h4 class="mt-4 text-primary"><span style="font-size: 1.2rem;">🔄</span> Simulaciones Paralelas</h4>
+        <div class="mt-5">
+            <h4 class="text-primary text-center mb-3">📊 Visualización Gráfica Circular</h4>
+            <div class="row">
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card shadow-sm p-3">
+                        <h6 class="text-center">Speedup por Procesador</h6>
+                        <canvas id="graficoSpeedupCircular"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card shadow-sm p-3">
+                        <h6 class="text-center">Eficiencia por Procesador</h6>
+                        <canvas id="graficoEficienciaCircular"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card shadow-sm p-3">
+                        <h6 class="text-center">Entregas Tardías (Gratis)</h6>
+                        <canvas id="graficoEntregasTardiasCircular"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card shadow-sm p-3">
+                        <h6 class="text-center">Entregas a Tiempo</h6>
+                        <canvas id="graficoEntregasATiempoCircular"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end mt-4">
+            <a asp-action="Index" class="text-decoration-none fw-semibold">
+                🔙 Volver al inicio
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script>
+        Chart.register(ChartDataLabels);
+
+        const datos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ResultadosParalelos));
+        const labels = datos.map(x => `${x.Procesadores} cores`);
+        const speedup = datos.map(x => x.Speedup);
+        const eficiencia = datos.map(x => x.Eficiencia);
+        const entregasATiempo = datos.map(x => x.EntregasATiempo);
+        const totalPedidos = @Model.TotalPedidos;
+        const entregasTardias = datos.map(x => totalPedidos - x.EntregasATiempo);
+
+        const datosPlatillos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.EstadisticasPlatillos.Select(p => new { Key = p.Key, Value = p.Value })
+    ));
+        const labelsPlatillos = datosPlatillos.map(x =>
+            `${x.Key == 'Pizza' ? '🍕' : x.Key == 'Hamburguesa' ? '🍔' : x.Key == 'Yaroa' ? '🍟' : x.Key == 'Burrito' ? '🌯' : x.Key == 'Tacos' ? '🌮' : '🍽'} ${x.Key}`
+        );
+        const dataPlatillos = datosPlatillos.map(x => x.Value);
+
+        const colores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+
+        function createDoughnutChart(ctx, labels, data) {
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: colores }] },
+                options: {
+                    plugins: {
+                        legend: { display: true, position: 'bottom' },
+                        datalabels: {
+                            formatter: value => value,
+                            color: '#fff',
+                            font: { weight: 'bold' }
+                        }
+                    }
+                }
+            });
+        }
+
+        createDoughnutChart(
+            document.getElementById('graficoSpeedupCircular').getContext('2d'),
+            labels, speedup
+        );
+        createDoughnutChart(
+            document.getElementById('graficoEficienciaCircular').getContext('2d'),
+            labels, eficiencia
+        );
+        createDoughnutChart(
+            document.getElementById('graficoEntregasTardiasCircular').getContext('2d'),
+            labels, entregasTardias
+        );
+        createDoughnutChart(
+            document.getElementById('graficoEntregasATiempoCircular').getContext('2d'),
+            labels, entregasATiempo
+        );
+        createDoughnutChart(
+            document.getElementById('graficoPlatillosCircular').getContext('2d'),
+            labelsPlatillos, dataPlatillos
+        );
+    </script>
+}

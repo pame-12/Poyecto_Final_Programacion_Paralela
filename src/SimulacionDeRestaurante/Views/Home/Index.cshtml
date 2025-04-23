@@ -1,8 +1,36 @@
-﻿@{
+@model SimulacionDeRestauranta.Models.SimulacionData
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow p-4" style="max-width: 700px; width: 100%;">
+        <div class="text-center mb-4">
+            <h3><span style="font-size: 2rem;">🍽</span> <strong class="text-primary">Bienvenido a la Simulación de Restaurante</strong></h3>
+            <p class="text-muted">Ingresa la cantidad de pedidos y selecciona uno o varios platillos del menú.</p>
+        </div>
+
+        <form asp-controller="Home" method="post" asp-action="Resultado">
+            <div class="mb-3">
+                <label asp-for="CantidadPeticiones" class="form-label">Cantidad de pedidos:</label>
+                <input type="number" class="form-control" min="1" required asp-for="CantidadPeticiones" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Selecciona los platillos del menú:</label>
+                <div class="form-check">
+                    @foreach (var platillo in ViewBag.Menu as string[])
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="menuSeleccionado" value="@platillo" id="@platillo" />
+                            <label class="form-check-label" for="@platillo">@platillo</label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Iniciar Simulación</button>
+        </form>
+    </div>
 </div>
